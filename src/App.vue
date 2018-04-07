@@ -1,17 +1,27 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <button @click="getLanguages">Get Languages</button>
+    <router-link 
+      v-for="lang in $store.state.languages"
+      :key="lang.id"
+      :to="lang.id"
+    >
+      {{ lang.name }}
+    </router-link>
+
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
 
 export default {
   name: 'app',
-  components: {
-    HelloWorld
+
+  methods: {
+    async getLanguages() {
+      await this.$store.dispatch('getLanguages')
+    }
   }
 }
 </script>
