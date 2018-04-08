@@ -182,7 +182,7 @@ SS: graphiql_screenshot
 
 Try executing the query:
 
-SS: graphiql_query
+![](https://github.com/lmiller1990/vue-apollo-graphql/blob/master/screenshots/graphiql_query.png)
 
 Okay, looking good. We will come back and implement two more queries, `getLanguage(id)` and `getFramework(id)` soon. First, let's see how to access the data using Apollo Client.
 
