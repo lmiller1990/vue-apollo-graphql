@@ -11,24 +11,23 @@ class Language {
 }
 
 class Framework {
-  constructor(id, name, similarById) {
+  constructor(id, name) {
     this.id = id
     this.name = name
-    this.similarById = similarById
   }
 }
 
 
 const frameworks = [
-  new Framework(1, 'Vue', 2),
-  new Framework(2, 'React', [1, 5]),
-  new Framework(3, 'Ember', [4]),
-  new Framework(4, 'Angular', [1, 3]),
-  new Framework(5, 'Preact', [2]),
+  new Framework(1, 'Vue'),
+  new Framework(2, 'React'),
+  new Framework(3, 'Ember'),
+  new Framework(4, 'Angular'),
+  new Framework(5, 'Preact'),
 
-  new Framework(6, 'Rails', [3, 7, 8]),
-  new Framework(7, 'Phoenix', [3, 6, 8]),
-  new Framework(8, 'Laravel', [6, 7]),
+  new Framework(6, 'Rails'),
+  new Framework(7, 'Phoenix'),
+  new Framework(8, 'Laravel'),
 ]
 
 const languages = [

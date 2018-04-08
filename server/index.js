@@ -1,29 +1,29 @@
+// modules
 const express = require('express')
 const cors = require('cors')
 const bodyParser = require('body-parser')
 const { graphqlExpress, graphiqlExpress } = require('apollo-server-express')
 const { makeExecutableSchema } = require('graphql-tools')
 
+// the mock data and classes
 const { Language, Framework, languages, frameworks } = require('./database')
 
 const typeDefs = `
-  type Query {
-    languages: [Language]
-    getLanguage(id: ID!): Language
-  }
+type Query {
+  languages: [Language]
+  getLanguage(id: ID!): Language
+}
 
-  type Language {
-    id: ID!
-    name: String!
-    frameworksById: [ID]
-    frameworks: [Framework]
-  }
+type Language {
+  id: ID!
+  name: String!
+  frameworks: [Framework]
+}
   
-  type Framework {
-    id: ID!
-    name: String
-    similarById: [ID!]
-  }
+type Framework {
+  id: ID!
+  name: String
+}
 `
 
 const delay = () => new Promise(res => {
@@ -36,13 +36,11 @@ const resolvers = {
   Query: {
     languages: async () => {
       await delay()
-      await delay()
-      await delay()
       return languages
     },
 
     getLanguage: async (_, { id }) => {
-      // await delay() 
+      await delay() 
       const language = languages.find(x => x.id === parseInt(id))
       return language
     },
@@ -51,7 +49,7 @@ const resolvers = {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  resolvers
+  resolvers,
 })
 
 const app = express()
