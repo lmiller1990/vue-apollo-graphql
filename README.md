@@ -2,6 +2,8 @@
 
 My previous article discussed how to setup a simple GraphQL server and query it from a Vue frontend. For my personal projects, I believe this is adequate, however a more common solution in complex, production applications is a framework to bring some structure and extra features to your stack. Apollo is one such framework.
 
+The link to the source code for this project is [here](https://github.com/lmiller1990/vue-apollo-graphql).
+
 ## What is Apollo?
 
 Apollo actual refers to a few things.
@@ -178,11 +180,11 @@ app.listen(5000, () => 'Listening on port 5000')
 
 Now run `node server`. If you typed everything correctly, visiting `localhost:5000/graphiql` should show:
 
-SS: graphiql_screenshot
+![](https://github.com/lmiller1990/vue-apollo-graphql/blob/master/screenshots/graphiql_query.png)
 
 Try executing the query:
 
-![](https://github.com/lmiller1990/vue-apollo-graphql/blob/master/screenshots/graphiql_query.png)
+![](https://github.com/lmiller1990/vue-apollo-graphql/blob/master/screenshots/graphiql_screenshot.png)
 
 Okay, looking good. We will come back and implement two more queries, `getLanguage(id)` and `getFramework(id)` soon. First, let's see how to access the data using Apollo Client.
 
@@ -261,7 +263,7 @@ Next, we import `graphql` as `gql`. This makes writing GraphQL queries a bit nic
 
 Start the Vue app by running `npm run serve` and visit `localhost:8080`. If everything went well, you can open the console and see:
 
-SS initial_query
+![](https://github.com/lmiller1990/vue-apollo-graphql/blob/master/screenshots/initial_query.png)
 
 So everything is working - but we haven't seen anything different or exciting yet. We could have achieved this without Apollo. Let's take a look at what Apollo can do for us.
 
@@ -333,17 +335,17 @@ export default {
 
 The console should now output the time:
 
-SS: get_languages
+![](https://github.com/lmiller1990/vue-apollo-graphql/blob/master/screenshots/get_languages.png)
 
 It took 1048ms. 1000ms was from `delay`. Try clicking the button a few more times. You should see:
 
-SS: get_languages_2
+![](https://github.com/lmiller1990/vue-apollo-graphql/blob/master/screenshots/get_languages_2.png)
 
-Every call to `getLanguages` after the first completes almost immediately. This is ApolloClient's __cache__ in action. Apollo remembers you executed `getLanguages` once already, and instead of making another request to the server, it responds with the previous result, that was cached.
+Every call to `getLanguages` after the first completes in around 10ms - almost immediately. This is ApolloClient's __cache__ in action. Apollo remembers you executed `getLanguages` once already, and instead of making another request to the server, it responds with the previous result, that was cached.
 
 Try adding `this.$apollo.resetStore()` after `console.timeEnd()`, and clicking the button a bunch more times. 
 
-SS: get_languages_3
+![](https://github.com/lmiller1990/vue-apollo-graphql/blob/master/screenshots/get_languages_3.png)
 
 `resetStore` clears Apollo's store and cache, which is where the result of the queries executed are saved by default. Sinc we are clearing the store, Apollo is now executing the query and hitting the server each time you click the button. 
 
@@ -359,7 +361,7 @@ If you have been working with Vue or React, you are probably used to storing dat
 console.log(this.$apollo.store)
 ```
 
-SS: apollo_store
+![](https://github.com/lmiller1990/vue-apollo-graphql/blob/master/screenshots/apollo_store.png)
 
 Interesting enough, Apollo's store and cache are __reactive__, much like Vue and React's reactivity. If a query or mutation modifies some data, all other references to it will be automatically updated in the Apollo store. 
 
@@ -503,7 +505,7 @@ We are now rendering the languages in `<router-link>`, which currently go nowehe
 
 You should see this:
 
-SS: languages_render
+![](https://github.com/lmiller1990/vue-apollo-graphql/blob/master/screenshots/languages_render.png)
 
 Anyway, now we get ApolloClient's caching, with the usual Vuex flow. We are completely ignoring some of Apollo's great features, like the reactive store, though. More on this later.
 
@@ -542,7 +544,7 @@ You are probably wondering what the `_` argument is. Read more [here](https://ww
 
 Let's try the new query in graphiql:
 
-SS: get_language_by_id
+![](https://github.com/lmiller1990/vue-apollo-graphql/blob/master/screenshots/get_language_by_id.png)
 
 Finally, a Vuex action to fetch the data:
 
@@ -642,7 +644,7 @@ export default new VueRouter({
 
 Head back to the Vue app, and try clicking on JavaScript. You should be directed to `localhost:8080/1`, and you should see:
 
-SS: get_language_working
+![](https://github.com/lmiller1990/vue-apollo-graphql/blob/master/screenshots/get_language_working.png)
 
 We fetche data using a query with variables! However, we don't have the frameworks yet.
 
@@ -684,7 +686,7 @@ const typeDefs = `
 
 We added `frameworks: [Framework]` to the `Language` type, and a `Framework` type. That's it! Head over to `localhost:5000/graphiql`, and get ready to feel the power of GraphQL. 
 
-SS: graphiql_frameworks
+![](https://github.com/lmiller1990/vue-apollo-graphql/blob/master/screenshots/graphiql_frameworks.png)
 
 Looking good.
 
@@ -729,13 +731,13 @@ Let's display the frameworks! Update `<LanguageContainer>`:
 </template>
 ```
 
-SS: show_frameworks
+![](https://github.com/lmiller1990/vue-apollo-graphql/blob/master/screenshots/show_frameworks.png)
 
 ### More on Apollo caching
 
 The above demonstrates Apollo's smart caching again. Try clicking the link for a language. It should take a second to show the frameworks, due to the artificial delay we added. Try changing between languages - when you visit the link for a language you previously visited, the frameworks should display immediately. This is because Apollo cached the data, and instead of hitting the endpoint again, used the previous result.
 
-SS: fast_fetch
+![](https://github.com/lmiller1990/vue-apollo-graphql/blob/master/screenshots/fast_fetch.png)
 
 See how the first `getLangById` call took 1062ms, but the second only 14ms?
 
@@ -750,3 +752,5 @@ The idea of link state is to let Apollo automatically store the result of the qu
 While Apollo's store is reactive internally, because Vue does not have knowledge of the Apollo store, you cannot simply use `computed` properties to watch the Apollo store. To integrate Apollo with Vue, you can use [VueApollo](https://github.com/Akryum/vue-apollo). There is [integration for most popular frameworks](https://www.apollographql.com/docs/react/integrations.html).
 
 Now I have an understanding of how Apollo works, I would like to try out VueApollo soon. The idea of leaving the store to Apollo and simply querying for the data I want is appealing. I think that approach might be great for new applications, but if you want to slowly integrate Apollo to an existing app that is using Vuex, perhaps the way presented in this article is a good way to get started. It allows since you to take advantage of Apollo's caching, and move from an existing (probably REST) API to a GraphQL API without changing you application's structure significantly.
+
+The link to the source code for this project is [here](https://github.com/lmiller1990/vue-apollo-graphql).
