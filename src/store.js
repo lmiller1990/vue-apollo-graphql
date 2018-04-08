@@ -6,30 +6,34 @@ import apollo from './apolloClient'
 Vue.use(Vuex)
 
 const state = {
-  languages: {}
+  languages: []
 }
 
 const mutations = {
   SET_LANGUAGES (state, { languages }) {
-    state.languages = {...state.languages, ...languages}
+    state.languages = [...state.languages, ...languages]
   }
 }
 
 const actions = {
-  async getLanguage({ commit }, { id }) {
+  async getLanguage({ commit }, id) {
     console.time(`getLangById ${id}`)
 
-    const response = await apollo.query({
-      query: gql`
+    const query = gql`
       query GetLanguage($id: ID!) {
         getLanguage(id: $id) {
           id
           name
           frameworksById
-        },
-        variables: { id }
-      }
-      `
+        }
+      }`
+
+    const variables = {
+      id: id 
+    }
+
+    const response = await apollo.query({
+      query, variables
     })
 
     console.log(response)
@@ -58,7 +62,13 @@ const actions = {
   }
 }
 
+const getters = {
+  getLanguageById: (state) => (id) => {
+    return state.languages.find(x => x.id === id)
+  }
+}
+
 export default new Vuex.Store({
-  state, mutations, actions
+  state, mutations, actions, getters
 })
 

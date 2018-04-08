@@ -4,6 +4,11 @@ class Language {
     this.name = name
     this.frameworksById = frameworksById
   }
+
+  frameworks() {
+    console.log('frameworks')
+    return this.frameworksById.map(id => frameworks.find(y => y.id === id))
+  }
 }
 
 class Framework {

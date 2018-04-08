@@ -299,11 +299,11 @@ It will be beneficial to see just how much time passes when `getLanguages` is ca
 
 ```js
 async getLanguages() {
-  console.time()
+  console.time('getLanguages')
 
   // const response = await this.$apollo.query ...
 
-  console.timeEnd()
+  console.timeEnd('getLanguages')
 }
 ```
 
@@ -361,7 +361,7 @@ const mutations = {
 
 const actions = {
   async getLanguages({ commit }) {
-    console.time()
+    console.time('getLanguages')
 
     const response = await apollo.query({
       query: gql`
@@ -377,7 +377,7 @@ const actions = {
     const { languages } = response.data
     commit('SET_LANGUAGES', { languages })
 
-    console.timeEnd()
+    console.timeEnd('getLanguages')
   }
 }
 
@@ -440,6 +440,8 @@ We are now rendering the data in `<router-link>`, which currently go nowehere. W
 
 Anyway, now we get ApolloClient's caching, with the usual Vuex flow. We are completely ignoring some of Apollo's great features, like the reactive store, though. More on this later.
 
+### Adding a query with variables
+
 Let's add some more queries to the server, which will let us see Apollo in action a bit more. Update `server/index.js`:
 
 
@@ -475,6 +477,178 @@ Let's try it out in graphiql:
 
 TODO: screenshot
 
-Finally, a Vuex action:
+Finally, a Vuex action to fetch the data:
+
+```js
+async getLanguage({ commit }, id) {
+  console.time(`getLangById ${id}`)
+
+  const query = gql`
+    query GetLanguage($id: ID!) {
+      getLanguage(id: $id) {
+        id
+        name
+        frameworksById
+      }
+    }`
+
+  const variables = {
+    id: id 
+  }
+
+  const response = await apollo.query({
+    query, variables
+  })
+
+  console.log(response)
+
+  console.timeEnd(`getLangById ${id}`)
+}
+```
+
+Make sure the `variables` object is defined outside the `gql` query. I was trying to include it in the `gql` tag and couldn't figure out why it wouldn't work. `gql` only parses __queries__, not variables.
+
+### Adding another route component
+
+To see this in action, we will add a `<LanguageContainer>` component, which will handle fetching the frameworks for each language. Create a `<LanguageContainer`> component in `src`. I use [vc](https://www.npmjs.com/package/vue-component-scaffold), then add the following:
 
 
+```html
+<template>
+  <div>
+    language
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'LanguageContainer',
+
+  watch: {
+    '$route.params.id': { 
+      handler (val) {
+        this.$store.dispatch('getLanguage', val)
+      },
+      immediate: true
+    }
+  }
+}
+</script>
+```
+
+This will go into `routes.js` in a moment. We are using `watch` to dispatch the `getLanguage` action we made arlier. We can also add `immediate: true` to dispatch as soon as we visit the route. The `id` will be taken from the `$route`, which we set up earlier when we wrote `<router-link :to="lang.id>`. Go ahead and add `LanguageContainer` to `src/routes.js`:
+
+```js
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+import LanguageContainer from './LanguageContainer'
+import App from './App'
+Vue.use(VueRouter)
+
+export default new VueRouter({
+  routes: [
+    {
+      name: 'language-container',
+      path: '/:id',
+      component: LanguageContainer,
+    }
+  ]
+})
+```
+
+Head back to the Vue app, and try clicking on JavaScript. You should be directed to `localhost:8080/1`, and in the console see:
+
+TODO: screenshot
+
+It would be nice to also show the currently selected language. Add `getters` to the Vuex store:
+
+
+```js
+const getters = {
+  getLanguageById: (state) => (id) => {
+    return state.languages.find(x => x.id === id)
+  }
+}
+
+export default new Vuex.Store({
+  state, mutations, actions, getters
+})
+```
+
+Then update `<LanguageContainer>`:
+
+```html
+<template>
+  <div>
+    {{ languageName }}
+  </div>
+</template>
+
+// ...
+computed: {
+  languageName() {
+    const lang = this.$store.getters['getLanguageById'](this.$route.params.id)
+    return lang ? lang.name : ''
+  }
+}
+// ...
+```
+
+### Improve the getLanguages query
+
+`getLanguages currently returns an __array__ of `frameworksById`, which is not really what we want. We want the actual frameworks names. In the dark ages of REST APIs, we would make another API call, or possibly get all the frameworks during the first call -- neither really optimal. Luckily, we are using GraphQL, so there is a better way. 
+
+Let's update the `Language` class, and the `getLanguages` query. Starting with `Language` in `server/database.js`, we will add a new method, `frameworks`:
+
+```js
+class Language {
+  // ...
+
+  frameworks() {
+    return this.frameworksById.map(id => frameworks.find(y => y.id === id))
+  }
+}
+```
+
+`frameworks` will return a nice `Array` of `Framework` objects. Head over to `server/index.js`, and update `typeDefs`:
+
+```js
+const typeDefs = `
+  type Query {
+    // ...
+  }
+
+  type Language {
+    id: ID!
+    name: String!
+    frameworksById: [ID]
+    frameworks: [Framework]
+  }
+  
+  type Framework {
+    id: ID!
+    name: String
+    similarById: [ID!]
+  }
+`
+```
+
+We added `frameworks: [Framework]` to the `Language` type, and a `Framework` type. That's it! Head over to `localhost:5000/graphiql`, and get ready to feel the power of GraphQL. 
+
+TODO: Add screenshot 
+
+```js
+{
+  getLanguage(id: 1) {
+    id
+    name
+    frameworks {
+			name
+    }
+  }
+}
+```
+
+Awwwwesome.
+
+### Showing frameworks on the client

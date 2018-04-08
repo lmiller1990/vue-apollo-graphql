@@ -16,6 +16,13 @@ const typeDefs = `
     id: ID!
     name: String!
     frameworksById: [ID]
+    frameworks: [Framework]
+  }
+  
+  type Framework {
+    id: ID!
+    name: String
+    similarById: [ID!]
   }
 `
 
@@ -33,9 +40,10 @@ const resolvers = {
     },
 
     getLanguage: async (_, { id }) => {
-      await delay() 
-      return languages.find(x => x.id === parseInt(id))
-    }
+      // await delay() 
+      const language = languages.find(x => x.id === parseInt(id))
+      return language
+    },
   }
 }
 
