@@ -1,6 +1,12 @@
 <template>
-  <div>
-    {{ languageName }}
+  <div v-if="language">
+    <h3>{{ language.name }}</h3>
+    <div 
+      v-for="framework in language.frameworks"
+      :key="framework.id"
+    >
+      {{ framework.name }}
+    </div>
   </div>
 </template>
 
@@ -9,9 +15,8 @@ export default {
   name: 'LanguageContainer',
 
   computed: {
-    languageName() {
-      const lang = this.$store.getters['getLanguageById'](this.$route.params.id)
-      return lang ? lang.name : ''
+    language() {
+      return this.$store.state.languages[this.$route.params.id]
     }
   },
 

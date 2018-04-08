@@ -36,6 +36,8 @@ const resolvers = {
   Query: {
     languages: async () => {
       await delay()
+      await delay()
+      await delay()
       return languages
     },
 

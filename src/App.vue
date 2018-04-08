@@ -1,12 +1,11 @@
 <template>
   <div id="app">
-    <button @click="getLanguages">Get Languages</button>
     <router-link 
-      v-for="lang in $store.state.languages"
-      :key="lang.id"
-      :to="lang.id"
+      v-for="id in $store.state.languageIds"
+      :key="id"
+      :to="id"
     >
-      {{ lang.name }}
+      {{ $store.state.languages[id].name }}
     </router-link>
 
     <router-view></router-view>
@@ -18,10 +17,8 @@
 export default {
   name: 'app',
 
-  methods: {
-    async getLanguages() {
-      await this.$store.dispatch('getLanguages')
-    }
+  async created() {
+    await this.$store.dispatch('getLanguages')
   }
 }
 </script>

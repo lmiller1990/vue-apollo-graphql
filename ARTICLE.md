@@ -579,16 +579,15 @@ Then update `<LanguageContainer>`:
 
 ```html
 <template>
-  <div>
-    {{ languageName }}
+  <div v-if="language">
+    {{ language.name }}
   </div>
 </template>
 
 // ...
 computed: {
   languageName() {
-    const lang = this.$store.getters['getLanguageById'](this.$route.params.id)
-    return lang ? lang.name : ''
+    return this.$store.getters['getLanguageById'](this.$route.params.id)
   }
 }
 // ...
@@ -652,3 +651,82 @@ TODO: Add screenshot
 Awwwwesome.
 
 ### Showing frameworks on the client
+
+Although we created a `getLanguage` action before, we did not add a mutation to write the freshly fetched data to the store. We will also add the `framework` field to the query. Let's do that now. Update `getLanguage` in `src/store.js`:
+
+```js
+async getLanguage({ commit }, id) {
+  await delay()
+  console.time(`getLangById ${id}`)
+
+  const query = gql`
+    query GetLanguage($id: ID!) {
+      getLanguage(id: $id) {
+        id
+        name
+        frameworks {
+          name
+        }
+      }
+    }`
+
+  const variables = {
+    id: id 
+  }
+
+  const response = await apollo.query({
+    query, variables
+  })
+
+  commit('UPDATE_LANGUAGE', { id, data: response.data.getLanguage })
+
+  console.timeEnd(`getLangById ${id}`)
+}
+```
+
+Here is the implemetation for `UPDATE_LANGUAGE`:
+
+```js
+UPDATE_LANGUAGE(state, { id, data }) {
+  if (!state.languageIds.includes(id)) {
+    state.languageIds.push(id)
+  }
+  state.languages = {...state.languages, [id]: {...data}}
+}
+```
+
+We simply update any existing data in the store with the newly freshed data (which includes the `frameworks` property).
+
+Let's display the frameworks! Update `<LanguageContainer>`:
+
+```html
+<template>
+  <div v-if="language">
+    <h3>{{ language.name }}</h3>
+    <div 
+      v-for="framework in language.frameworks"
+      :key="framework.id"
+    >
+      {{ framework.name }}
+    </div>
+  </div>
+</template>
+```
+
+
+TODO: screenshot
+
+### Apollo caching again
+
+This displays Apollo's smart caching again. Try clicking the link for a language. It should take a second to show the frameworks, due to the artificial delay we added. Try changing between languages - when you visit the link for a language you previously visited, the frameworks should display immediately. This is because Apollo cached the data, and instead of hitting the endpoint again, used the previous result.
+
+
+### Thoughts on Vuex with Apollo
+
+While we get Apollo's convinient caching, we are ignoring a number of features, namely it's own reative store, and how it normalizes data in the store, to optimize performance. We had to write the usual Vuex boilerplate action -> mutation. Instead of using a combination of `computed` properties and `getters` to query the data returned by Apollo and stored using Vuex, Apollo has a library called [link state](https://github.com/apollographql/apollo-link-state).
+
+The idea of link state is to let Apollo automatically store the result of the queries, and instead of using something like Vuex modules to structure the data, you simply query the Apollo data store for what you want. Basically, instead of thinking about how to structure you Vuex store, you simply let Apollo figure how out to structure the data. Then, in your `computed` properties, you can just write GraphQL queries which return the desired data from Apollo's store!
+
+While Apollo's store is reactive internally, because Vue does not have knowledge of the Apollo store, `computed` properties will not reactively update in response to Apollo's store. To integrate Apollo with Vue, you can use VueApollo. There is [integration for most popular frameworks](https://www.apollographql.com/docs/react/integrations.html).
+
+Now I have an understanding of how Apollo works, I would like to try out VueApollo soon. The idea of leaving the store to Apollo and simply querying for the data I want is appealing. I think that approach might be great for new applications, but if you want to slowly integrate Apollo to an existing app that is using Vuex, perhaps the way presented in this article is a good way to get started. It allows since you to take advantage of Apollo's caching, and move from an existing (probably REST) API to a GraphQL API without changing you application's structure significantly.

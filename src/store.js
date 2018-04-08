@@ -3,20 +3,51 @@ import Vuex from 'vuex'
 import gql from 'graphql-tag'
 import apollo from './apolloClient'
 
+const delay = () => new Promise(res => {
+  setTimeout(() => {
+    res(true)
+  }, 1000)
+})
+
+
 Vue.use(Vuex)
 
 const state = {
-  languages: []
+  languageIds: [],
+  languages: {}
 }
 
 const mutations = {
   SET_LANGUAGES (state, { languages }) {
-    state.languages = [...state.languages, ...languages]
+    const ids = languages.map(x => x.id)
+    for (let id in ids) {
+      if (!state.languageIds.includes(ids[id])) {
+        state.languageIds.push(ids[id])
+      }
+    }
+    console.log(state.languageIds)
+
+    for (let l in languages) {
+      const language = languages[l]
+      state.languages = {
+        ...state.languages, 
+        [language.id]: {...state.languages[language.id], ...language},
+      }
+    }
+  },
+
+  UPDATE_LANGUAGE(state, { id, data }) {
+    if (!state.languageIds.includes(id)) {
+      state.languageIds.push(id)
+    }
+    state.languages = {...state.languages, [id]: {...data}}
+    console.log(state.languages)
   }
 }
 
 const actions = {
   async getLanguage({ commit }, id) {
+    await delay()
     console.time(`getLangById ${id}`)
 
     const query = gql`
@@ -24,7 +55,9 @@ const actions = {
         getLanguage(id: $id) {
           id
           name
-          frameworksById
+          frameworks {
+            name
+          }
         }
       }`
 
@@ -36,12 +69,13 @@ const actions = {
       query, variables
     })
 
-    console.log(response)
+    commit('UPDATE_LANGUAGE', { id, data: response.data.getLanguage })
 
     console.timeEnd(`getLangById ${id}`)
   },
 
   async getLanguages({ commit }) {
+    await delay()
     console.time('getLanguages')
 
     const response = await apollo.query({
