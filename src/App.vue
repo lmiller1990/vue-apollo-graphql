@@ -1,6 +1,7 @@
 <template>
   <div id="app">
     <router-link 
+     class="link"
       v-for="id in $store.state.languageIds"
       :key="id"
       :to="id"
@@ -31,5 +32,9 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+
+.link {
+  margin: 0px 2px;
 }
 </style>

@@ -2,6 +2,12 @@
 
 My previous article discussed how to setup a simple GraphQL server and query it from a Vue frontend. For my personal projects, I believe this is adequate, however a more common solution in complex, production applications is a framework to bring some structure and extra features to your stack. Apollo is one such framework.
 
+To demonstrate how to use Apollo with Vue and Vuex, we will be building the following app:
+
+![](https://github.com/lmiller1990/vue-apollo-graphql/blob/master/screenshots/app.png)
+
+The app shows a list of programming languages, and fetches the frameworks for each when selected. I will be building both the GraphQL backend and Vue frontend, using Apollo on both the server and client.
+
 The link to the source code for this project is [here](https://github.com/lmiller1990/vue-apollo-graphql).
 
 ## What is Apollo?
@@ -283,7 +289,7 @@ const delay = () => new Promise(res => {
 
 Calling `await delay()` will cause the server to wait. Update `resolvers` to use `delay`:
 
-```js`
+```js
 const resolvers = {
   Query: {
     languages: async () => {
@@ -437,7 +443,7 @@ export default new Vuex.Store({
 })
 ```
 
-This is pretty standard Vuex. We import `apollo` from './apolloClient', and just moved the query into an action. 
+This is pretty standard Vuex. We import `apollo` from './apolloClient', and just moved the query into an action. We also added mutation, `SET_LANGUAGES`, to add the data to the store's `state`.
 
 ### Adding Vue Router
 
@@ -507,7 +513,7 @@ You should see this:
 
 ![](https://github.com/lmiller1990/vue-apollo-graphql/blob/master/screenshots/languages_render.png)
 
-Anyway, now we get ApolloClient's caching, with the usual Vuex flow. We are completely ignoring some of Apollo's great features, like the reactive store, though. More on this later.
+Now we get ApolloClient's caching, with the usual Vuex flow. We are completely ignoring some of Apollo's great features, like the reactive store, though. More on this later.
 
 ### Adding a query with variables
 
@@ -713,7 +719,7 @@ async getLanguage({ commit }, id) {
 }
 ```
 
-We simply added the name of the field we want, and leave the rest up to GraphQL + Apollo Server.
+We simply added the name of the field we want, `frameworks`, and the `name` property. The rest is left up to GraphQL + Apollo Server.
 
 Let's display the frameworks! Update `<LanguageContainer>`:
 
@@ -747,7 +753,9 @@ While we get Apollo's convinient caching, we are ignoring a number of features, 
 
 There is an alternative. Apollo has a library called [link state](https://github.com/apollographql/apollo-link-state).
 
-The idea of link state is to let Apollo automatically store the result of the queries, and instead of using something like Vuex modules to structure the data, and getters/computed properties to get the data you want from the store, you simply query the Apollo data store for what you want. Basically, instead of thinking about how to structure you Vuex store, you simply let Apollo figure how out to structure the data. Then you simply write GraphQL queries (perhaps in `methods`, for example) and ask Apollo for whatever data you want.
+The idea of link state is to let Apollo automatically store the result of the queries, and instead of using something like Vuex modules to structure the data, and getters/computed properties to get the data you want from the store, you simply query the Apollo data store for what you want. 
+
+Basically, instead of thinking about how to structure you Vuex store, you simply let Apollo figure how out to structure the data. Then you simply write GraphQL queries (perhaps in `methods`, for example) and ask Apollo for whatever data you want.
 
 While Apollo's store is reactive internally, because Vue does not have knowledge of the Apollo store, you cannot simply use `computed` properties to watch the Apollo store. To integrate Apollo with Vue, you can use [VueApollo](https://github.com/Akryum/vue-apollo). There is [integration for most popular frameworks](https://www.apollographql.com/docs/react/integrations.html).
 
